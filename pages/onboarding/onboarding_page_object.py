@@ -7,6 +7,7 @@ class OnboardingPageObject(PageObject):
 
     def wait_until_entering_the_page(self):
         self._wait.until(EC.title_contains("Onboarding"))
+        return self.wait_for(OnboardingPageLocators.FORM)
 
     def set_first_name(self, name):
         first_name = self.find(OnboardingPageLocators.FORM_FIRST_NAME)

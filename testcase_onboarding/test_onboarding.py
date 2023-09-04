@@ -1,23 +1,20 @@
-from time import sleep
 from faker import Faker 
 import pytest
 
 from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from conftest import URL
 
-from locators import DonePageLocators, OnboardingLocators
+from conftest import URL
 from pages.all_listings.all_listings_page_object import AllListingsPageObject
 from pages.explore_catalog.explore_catalogs_page_object import ExploreCatalogsPageObject
 from pages.onboarding.onboarding_page_object import OnboardingPageObject
 from pages.sign_up.sign_up_page_object import SignUpPageObject
+from pages.you_re_done.done_page_object import DonePageObject
 
 
 faker = Faker()
 
 
-def test__onboarding_process(setup_teardown):
+def test__onboarding_process(setup_teardown: tuple):
     """
     Go to a non-homepage page and click "Create Account"
     Enter a new email address and password.
@@ -29,7 +26,7 @@ def test__onboarding_process(setup_teardown):
     The "You're done" page is shown.
     You should be redirected to the previous page you were on before signup.
     """
-    driver, wait = setup_teardown
+    driver = setup_teardown
 
     explore_catalog = ExploreCatalogsPageObject(driver)
     explore_catalog.wait_for_header()
@@ -56,7 +53,7 @@ def test__onboarding_process(setup_teardown):
     
     onboarding = OnboardingPageObject(driver)
     try:
-        onboarding.wait_until_entering_the_page()
+        assert onboarding.wait_until_entering_the_page()
     except TimeoutException:
         pytest.fail("After clicking continue button, next page does not contain 'Onboarding' in the title")
 
@@ -71,26 +68,21 @@ def test__onboarding_process(setup_teardown):
 
     driver.get(URL)
     try:
-        onboarding.wait_until_entering_the_page()
+        assert onboarding.wait_until_entering_the_page()
     except TimeoutException:
         pytest.fail("After clicking continue button, and trying to go to the main"
                     + " page does not redirect to 'Onboarding' page")
 
-    form = driver.find_element(By.TAG_NAME, "form")
-    assert form, "Could not find a form"
-
     onboarding.set_first_name(faker.name())
     onboarding.set_last_name(faker.name())
     onboarding.submit()
-    
+
+    done = DonePageObject(driver)
     try:
-        wait.until(EC.visibility_of_element_located(DonePageLocators.YOU_RE_DONE))
+        done.wait_until_loaded()
     except TimeoutException:
         # If the element is not found, the assertion fails
         pytest.fail("You are done page not shown")
-    assert driver.find_element(
-        *DonePageLocators.SUCCESSFULLY_CREATED
-        ), "Couldn't find a paragraph containing 'successfully created"
-    
+
     # You should be redirected to the previous page you were on before BEING REDIRECTED TO ONBOARDING.
-    assert wait.until(EC.title_contains("Explore Catalog")), "Failed to get redirected to Explore"
+    assert explore_catalog.wait_for_header()

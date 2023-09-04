@@ -22,10 +22,8 @@ def setup_teardown():
     driver = webdriver.Chrome()
     driver.get(URL)
     driver.maximize_window()   
-    
-    # Set an explicit wait for the element to appear
-    wait = WebDriverWait(driver, 20)  # Adjust the timeout as needed
 
-    yield driver, wait  # This is the value that will be passed to the test function
+    yield driver  # This is the value that will be passed to the test function
+
     # Teardown code - Close the WebDriver
     driver.quit()
