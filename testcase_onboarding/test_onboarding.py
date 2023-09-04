@@ -7,9 +7,12 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from conftest import URL
 
-from locators import DonePageLocators, MainPageLocators, OnboardingLocators
+from locators import DonePageLocators, OnboardingLocators
 from pages.all_listings.all_listings_page_object import AllListingsPageObject
 from pages.explore_catalog.explore_catalogs_page_object import ExploreCatalogsPageObject
+from pages.onboarding.onboarding_page_object import OnboardingPageObject
+from pages.sign_up.sign_up_page_object import SignUpPageObject
+
 
 faker = Faker()
 
@@ -38,23 +41,24 @@ def test__onboarding_process(setup_teardown):
     all_listings.click_on_create_account()
 
     print('Can go to a non-homepage page and click "Create Account"')
-    assert "Sign up" in driver.title, "Title of page does not contain 'Sign up' after clicking on 'Create Account' button"
-
+    
     
     #Enter a new mail, a password and click submit button should redirect to onboarding page
-    form = driver.find_element(By.TAG_NAME, "form")
-    email = form.find_element(By.NAME, "email")
-    email.send_keys(faker.email())
-    password = form.find_element(By.NAME, "password")
-    password.send_keys("UPPERlower4_")
-
-    continue_button = form.find_element(By.NAME, "action")
-    continue_button.click()
+    sign_up = SignUpPageObject(driver)
     try:
-        wait.until(EC.title_contains("Onboarding"))
+        sign_up.wait_until_entering_the_page()
+    except:
+        pytest.fail("Title of page does not contain 'Sign up' after clicking on 'Create Account' button")
+
+    sign_up.set_email(faker.email())
+    sign_up.set_password("UPPERlower4_")
+    sign_up.click_continue_button()
+    
+    onboarding = OnboardingPageObject(driver)
+    try:
+        onboarding.wait_until_entering_the_page()
     except TimeoutException:
         pytest.fail("After clicking continue button, next page does not contain 'Onboarding' in the title")
-
 
     # After closing the tab without completing the process
     # other pages redirect to the onboarding page
@@ -67,7 +71,7 @@ def test__onboarding_process(setup_teardown):
 
     driver.get(URL)
     try:
-        wait.until(EC.title_contains("Onboarding"))
+        onboarding.wait_until_entering_the_page()
     except TimeoutException:
         pytest.fail("After clicking continue button, and trying to go to the main"
                     + " page does not redirect to 'Onboarding' page")
@@ -75,13 +79,10 @@ def test__onboarding_process(setup_teardown):
     form = driver.find_element(By.TAG_NAME, "form")
     assert form, "Could not find a form"
 
-    first_name = form.find_element(*OnboardingLocators.FORM_FIRST_NAME)
-    first_name.send_keys(faker.name())
-    last_name = form.find_element(*OnboardingLocators.FORM_LAST_NAME)
-    last_name.send_keys(faker.name())
-    submit = driver.find_element(*OnboardingLocators.FORM_SUBMIT)
-    submit.click()
-
+    onboarding.set_first_name(faker.name())
+    onboarding.set_last_name(faker.name())
+    onboarding.submit()
+    
     try:
         wait.until(EC.visibility_of_element_located(DonePageLocators.YOU_RE_DONE))
     except TimeoutException:

@@ -2,7 +2,7 @@ from selenium.webdriver.common.by import By
 
 
 class AllListingsPageLocators():
-    """A class for main page locators. All main page locators should come here"""
+    """A class for All Listings page locators"""
 
     HEADER = (By.XPATH, "//div[contains(@class, 'z-header')]")
     HEADER_BROWSE = (By.XPATH, "//div[contains(@class, 'z-header')]//p[contains(text(), 'Browse')]")
