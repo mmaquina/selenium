@@ -8,7 +8,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from conftest import URL
 
 from locators import DonePageLocators, MainPageLocators, OnboardingLocators
-
+from pages.all_listings.all_listings_page_object import AllListingsPageObject
+from pages.explore_catalog.explore_catalogs_page_object import ExploreCatalogsPageObject
 
 faker = Faker()
 
@@ -27,24 +28,19 @@ def test__onboarding_process(setup_teardown):
     """
     driver, wait = setup_teardown
 
-    try:
-        wait.until(EC.visibility_of_element_located(MainPageLocators.HEADER))
-    except TimeoutException:
-        pytest.fail("Cannot find the header in the main page")
+    explore_catalog = ExploreCatalogsPageObject(driver)
+    explore_catalog.wait_for_header()
+    explore_catalog.click_on_browse()
+    explore_catalog.click_on_all_listings()
 
-    browse = driver.find_element(*MainPageLocators.HEADER_BROWSE)
-    browse.click()
+    all_listings = AllListingsPageObject(driver)
+    all_listings.wait_until_entering_the_page()
+    all_listings.click_on_create_account()
 
-    all_listings = wait.until(EC.visibility_of_element_located(MainPageLocators.HEADER_ALL_LISTINGS))
-    all_listings.click()
-    wait.until(EC.title_contains("All Listings"))
-
-    create_account = driver.find_element(*MainPageLocators.CREATE_ACCOUNT)
-    create_account.click()
     print('Can go to a non-homepage page and click "Create Account"')
     assert "Sign up" in driver.title, "Title of page does not contain 'Sign up' after clicking on 'Create Account' button"
 
-
+    
     #Enter a new mail, a password and click submit button should redirect to onboarding page
     form = driver.find_element(By.TAG_NAME, "form")
     email = form.find_element(By.NAME, "email")
